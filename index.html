@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Simple Interest Calculator</title>
+    <!-- Tailwind CSS for modern responsive utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons for rich visual UI -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth transition for theme toggle */
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        /* Custom scrollbars for tables */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-sans flex flex-col justify-between antialiased">
+
+    <!-- Top Navigation Header -->
+    <header class="w-full bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 shadow-sm transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-brand-600 text-white rounded-xl shadow-md">
+                    <i class="fa-solid me-0 fa-calculator text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight">InterestPro</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Simple Interest & Yield Analyzer</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Theme Switcher Toggle -->
+                <button id="themeToggle" onclick="toggleDarkMode()" aria-label="Toggle Theme" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Input Form & Dynamic Advisory (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col space-y-6">
+            
+            <!-- Input Card -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-100 dark:border-slate-700">
+                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-brand-600 dark:text-brand-500"></i> Investment Parameters
+                    </h2>
+                    <button onclick="resetCalculator()" class="text-xs font-medium text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400 transition-colors">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                    </button>
+                </div>
+
+                <form id="calculatorForm" onsubmit="event.preventDefault();" class="space-y-5">
+                    <!-- Principal Input -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label for="principal" class="text-sm font-medium text-slate-700 dark:text-slate-300">Principal Amount (P)</label>
+                            <span class="text-xs font-semibold text-brand-600 dark:text-brand-400" id="principalBadge">$10,000</span>
+                        </div>
+                        <div class="relative rounded-xl shadow-sm">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                <span class="text-slate-400 font-medium">$</span>
+                            </div>
+                            <input type="number" id="principal" value="10000" min="1" max="10000000" step="100" oninput="calculateInterest()" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 py-3 pl-9 pr-4 text-slate-900 dark:text-white focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/20 text-sm transition-all outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Interest Rate Input -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label for="rate" class="text-sm font-medium text-slate-700 dark:text-slate-300">Annual Interest Rate (R %)</label>
+                            <span class="text-xs font-semibold text-brand-600 dark:text-brand-400" id="rateBadge">6.5%</span>
+                        </div>
+                        <div class="relative rounded-xl shadow-sm">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                <i class="fa-solid fa-percent text-slate-400 text-xs"></i>
+                            </div>
+                            <input type="number" id="rate" value="6.5" min="0.1" max="100" step="0.1" oninput="calculateInterest()" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 py-3 pl-9 pr-4 text-slate-900 dark:text-white focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/20 text-sm transition-all outline-none">
+                        </div>
+                        <input type="range" id="rateRange" value="6.5" min="0.5" max="25" step="0.1" oninput="syncRateFromRange(this.value)" class="w-full mt-3 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-600">
+                    </div>
+
+                    <!-- Time Duration Input -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label for="time" class="text-sm font-medium text-slate-700 dark:text-slate-300">Time Duration (T in Years)</label>
+                            <span class="text-xs font-semibold text-brand-600 dark:text-brand-400" id="timeBadge">5 Years</span>
+                        </div>
+                        <div class="relative rounded-xl shadow-sm">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                <i class="fa-regular fa-clock text-slate-400 text-xs"></i>
+                            </div>
+                            <input type="number" id="time" value="5" min="1" max="50" step="1" oninput="calculateInterest()" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 py-3 pl-9 pr-4 text-slate-900 dark:text-white focus:border-brand-500 focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-brand-500/20 text-sm transition-all outline-none">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Dynamic Logic & Insights Card (Demonstrates Conditions & Functions) -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-brand-600"></i> Dynamic Analysis & Logic
+                    </h3>
+                    <span class="text-xs px-2.5 py-0.5 rounded-full font-medium bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800" id="yieldBadge">
+                        High Yield
+                    </span>
+                </div>
+
+                <!-- Condition Evaluation Alerts -->
+                <div class="space-y-3">
+                    <div id="rateEvaluationCard" class="p-3.5 rounded-xl text-xs flex items-start gap-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 text-sm"></i>
+                        <div id="rateEvaluationText" class="text-slate-600 dark:text-slate-300">
+                            Loading rate evaluation...
+                        </div>
+                    </div>
+
+                    <div id="termAdviceCard" class="p-3.5 rounded-xl text-xs flex items-start gap-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                        <i class="fa-solid fa-compass text-brand-500 mt-0.5 text-sm"></i>
+                        <div id="termAdviceText" class="text-slate-600 dark:text-slate-300">
+                            Loading horizon advisory...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formula Reference -->
+                <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 text-xs font-mono text-slate-600 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-700">
+                    <div class="text-center font-semibold mb-1 text-slate-800 dark:text-slate-200">Core Calculation Formulas</div>
+                    <div class="flex justify-around text-center">
+                        <div>SI = (P × R × T) / 100</div>
+                        <div>A = P + SI</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Results Summary & Loop Breakdowns (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col space-y-6">
+
+            <!-- Primary Output Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Principal Card -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-3 -bottom-3 text-slate-100 dark:text-slate-700/30 text-6xl pointer-events-none">
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Principal (P)</span>
+                    <span class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white block" id="outPrincipal">$10,000.00</span>
+                    <span class="text-xs text-slate-400 dark:text-slate-500 mt-2 block">Initial Capital</span>
+                </div>
+
+                <!-- Total Interest Card -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-brand-200 dark:border-brand-900/40 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-3 -bottom-3 text-brand-500/10 text-6xl pointer-events-none">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <span class="text-xs font-medium text-brand-600 dark:text-brand-400 uppercase tracking-wider block mb-1">Total Interest (SI)</span>
+                    <span class="text-xl sm:text-2xl font-bold text-brand-600 dark:text-brand-400 block" id="outInterest">$3,250.00</span>
+                    <span class="text-xs text-slate-400 dark:text-slate-500 mt-2 block" id="outInterestRatio">32.5% yield on principal</span>
+                </div>
+
+                <!-- Maturity Amount Card -->
+                <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                    <div class="absolute -right-3 -bottom-3 text-slate-100 dark:text-slate-700/30 text-6xl pointer-events-none">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                    <span class="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">Total Amount (A)</span>
+                    <span class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white block" id="outTotal">$13,250.00</span>
+                    <span class="text-xs text-emerald-600 dark:text-emerald-400 mt-2 block font-medium">Principal + Interest</span>
+                </div>
+            </div>
+
+            <!-- Side-by-Side Rate Comparison Table (Loops & Comparisons Module) -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-code-compare text-brand-600"></i> Interest Rate Scenario Comparison
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Comparing baseline rate against elevated scenarios over selected term</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-200 dark:border-slate-700">
+                            <tr>
+                                <th class="py-3 px-4 rounded-l-lg">Scenario</th>
+                                <th class="py-3 px-4">Rate (%)</th>
+                                <th class="py-3 px-4">Total Interest</th>
+                                <th class="py-3 px-4">Total Value</th>
+                                <th class="py-3 px-4 rounded-r-lg">Difference</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                            <!-- Populated dynamically via JavaScript Loop -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Year-by-Year Growth Schedule (JS Loop Module) -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex-grow flex flex-col">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-700">
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-ol text-brand-600"></i> Year-by-Year Accumulation Schedule
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Loop-generated iterative breakdown from Year 1 to Year T</p>
+                    </div>
+                    <span class="text-xs font-mono bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-md" id="loopCounterBadge">
+                        0 Iterations
+                    </span>
+                </div>
+
+                <div class="overflow-y-auto max-h-72 border border-slate-100 dark:border-slate-700/60 rounded-xl">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 sticky top-0 uppercase text-[11px] tracking-wider border-b border-slate-200 dark:border-slate-700 shadow-xs">
+                            <tr>
+                                <th class="py-2.5 px-4">Year</th>
+                                <th class="py-2.5 px-4">Start Balance</th>
+                                <th class="py-2.5 px-4">Annual Interest</th>
+                                <th class="py-2.5 px-4">Cumulative Interest</th>
+                                <th class="py-2.5 px-4 text-right">End Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="breakdownTableBody" class="divide-y divide-slate-100 dark:divide-slate-700/40">
+                            <!-- Generated dynamically using JS for-loop -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer Footer Information -->
+    <footer class="w-full bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
+            <p>Simple Interest Calculator — Interactive Programming Core Demonstration</p>
+            <p class="font-mono text-[11px] bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded">
+                JS Core Concepts: Functions | Conditions | For Loops | DOM Manipulation
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic Layer -->
+    <script>
+        /**
+         * Core Function 1: Currency & Format Helpers
+         */
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        function formatPercent(val) {
+            return parseFloat(val).toFixed(1) + '%';
+        }
+
+        /**
+         * Core Function 2: Pure Calculation Logic
+         * Formula: SI = (P * R * T) / 100
+         */
+        function computeSimpleInterest(principal, rate, time) {
+            const interest = (principal * rate * time) / 100;
+            const totalAmount = principal + interest;
+            return {
+                principal: principal,
+                rate: rate,
+                time: time,
+                interest: interest,
+                totalAmount: totalAmount,
+                yieldPercentage: (interest / principal) * 100
+            };
+        }
+
+        /**
+         * Core Function 3: Conditional Logic Evaluator
+         * Analyzes rates, investment horizons, and yields to return structural alerts.
+         */
+        function evaluateInvestmentConditions(data) {
+            // Yield Level Condition
+            let yieldBadgeText = '';
+            let yieldBadgeStyle = '';
+
+            if (data.yieldPercentage >= 50) {
+                yieldBadgeText = 'High Yield Output';
+                yieldBadgeStyle = 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800';
+            } else if (data.yieldPercentage >= 20) {
+                yieldBadgeText = 'Moderate Yield';
+                yieldBadgeStyle = 'bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800';
+            } else {
+                yieldBadgeText = 'Low Yield Output';
+                yieldBadgeStyle = 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800';
+            }
+
+            // Interest Rate Level Evaluation (Condition Check)
+            let rateEvalHtml = '';
+            if (data.rate < 4.0) {
+                rateEvalHtml = `<strong>Conservative Interest Rate:</strong> At ${data.rate}%, your growth rate is below inflation averages. Consider exploring higher-yield opportunities.`;
+            } else if (data.rate <= 10.0) {
+                rateEvalHtml = `<strong>Standard Competitive Rate:</strong> ${data.rate}% represents a balanced, typical market return rate for fixed yield instruments.`;
+            } else {
+                rateEvalHtml = `<strong>High Yield Rate:</strong> ${data.rate}% is a aggressive yield rate. Ensure risk factors are thoroughly evaluated.`;
+            }
+
+            // Investment Horizon Evaluation (Condition Check)
+            let termAdviceHtml = '';
+            if (data.time <= 2) {
+                termAdviceHtml = `<strong>Short Term Horizon (${data.time} yrs):</strong> Simple interest yields quick short-term liquidity with zero compounding velocity.`;
+            } else if (data.time <= 7) {
+                termAdviceHtml = `<strong>Medium Term Horizon (${data.time} yrs):</strong> Good steady growth. Yield accumulation total is ${formatCurrency(data.interest)}.`;
+            } else {
+                termAdviceHtml = `<strong>Long Term Horizon (${data.time} yrs):</strong> Over ${data.time} years, compounding accounts could outperform simple interest. Yield accounts for ${data.yieldPercentage.toFixed(1)}% of your principal.`;
+            }
+
+            return {
+                yieldBadgeText,
+                yieldBadgeStyle,
+                rateEvalHtml,
+                termAdviceHtml
+            };
+        }
+
+        /**
+         * Core Function 4: Main Controller and DOM Updates
+         */
+        function calculateInterest() {
+            // Retrieve Inputs
+            const P = parseFloat(document.getElementById('principal').value) || 0;
+            const R = parseFloat(document.getElementById('rate').value) || 0;
+            const T = parseInt(document.getElementById('time').value) || 0;
+
+            // Sync Range Slider
+            document.getElementById('rateRange').value = R;
+
+            // Sync UI Input Badges
+            document.getElementById('principalBadge').innerText = formatCurrency(P);
+            document.getElementById('rateBadge').innerText = formatPercent(R);
+            document.getElementById('timeBadge').innerText = T + (T === 1 ? ' Year' : ' Years');
+
+            // Perform Main Calculation
+            const result = computeSimpleInterest(P, R, T);
+
+            // Render Output Metrics
+            document.getElementById('outPrincipal').innerText = formatCurrency(result.principal);
+            document.getElementById('outInterest').innerText = formatCurrency(result.interest);
+            document.getElementById('outTotal').innerText = formatCurrency(result.totalAmount);
+            document.getElementById('outInterestRatio').innerText = `${result.yieldPercentage.toFixed(1)}% yield on principal`;
+
+            // Evaluate Conditions and Update Advisories
+            const evalResult = evaluateInvestmentConditions(result);
+            
+            const yieldBadge = document.getElementById('yieldBadge');
+            yieldBadge.innerText = evalResult.yieldBadgeText;
+            yieldBadge.className = `text-xs px-2.5 py-0.5 rounded-full font-medium border ${evalResult.yieldBadgeStyle}`;
+
+            document.getElementById('rateEvaluationText').innerHTML = evalResult.rateEvalHtml;
+            document.getElementById('termAdviceText').innerHTML = evalResult.termAdviceHtml;
+
+            // Generate Tables using Loops
+            generateYearlyBreakdownTable(P, R, T);
+            generateComparisonTable(P, R, T);
+        }
+
+        /**
+         * Core Function 5: Loop Demonstration 1 (Year-by-Year Table)
+         * Uses a standard JS `for` loop to compute cumulative growth year over year.
+         */
+        function generateYearlyBreakdownTable(P, R, T) {
+            const tableBody = document.getElementById('breakdownTableBody');
+            tableBody.innerHTML = '';
+
+            const annualInterest = (P * R) / 100;
+            let cumulativeInterest = 0;
+            let currentBalance = P;
+
+            // Execution of FOR Loop for Year 1 through Year T
+            for (let year = 1; year <= T; year++) {
+                cumulativeInterest += annualInterest;
+                const endBalance = P + cumulativeInterest;
+
+                const row = document.createElement('tr');
+                row.className = year % 2 === 0 
+                    ? 'bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100/60 dark:hover:bg-slate-700/50 transition-colors' 
+                    : 'hover:bg-slate-100/60 dark:hover:bg-slate-700/50 transition-colors';
+
+                row.innerHTML = `
+                    <td class="py-2.5 px-4 font-semibold text-slate-700 dark:text-slate-300">Year ${year}</td>
+                    <td class="py-2.5 px-4 text-slate-600 dark:text-slate-400">${formatCurrency(currentBalance)}</td>
+                    <td class="py-2.5 px-4 text-emerald-600 dark:text-emerald-400 font-medium">+${formatCurrency(annualInterest)}</td>
+                    <td class="py-2.5 px-4 text-brand-600 dark:text-brand-400 font-medium">${formatCurrency(cumulativeInterest)}</td>
+                    <td class="py-2.5 px-4 text-slate-900 dark:text-white font-semibold text-right">${formatCurrency(endBalance)}</td>
+                `;
+
+                tableBody.appendChild(row);
+                currentBalance = endBalance;
+            }
+
+            // Update iteration counter badge
+            document.getElementById('loopCounterBadge').innerText = `${T} Loop Iteration${T === 1 ? '' : 's'}`;
+        }
+
+        /**
+         * Core Function 6: Loop Demonstration 2 (Scenario Rate Comparisons)
+         * Uses an array loop (`forEach`) to compare different rate scenarios side by side.
+         */
+        function generateComparisonTable(P, R, T) {
+            const tableBody = document.getElementById('comparisonTableBody');
+            tableBody.innerHTML = '';
+
+            // Array of scenarios comparing baseline rate against +2% and +5% increments
+            const scenarios = [
+                { name: 'Current Selected Rate', rateOffset: 0 },
+                { name: 'Competitive Yield (+2%)', rateOffset: 2.0 },
+                { name: 'High-Yield Venture (+5%)', rateOffset: 5.0 }
+            ];
+
+            const baseResult = computeSimpleInterest(P, R, T);
+
+            // Loop through scenarios array
+            scenarios.forEach((scenario, index) => {
+                const targetRate = Math.max(0.1, R + scenario.rateOffset);
+                const result = computeSimpleInterest(P, targetRate, T);
+                const difference = result.interest - baseResult.interest;
+
+                const row = document.createElement('tr');
+                row.className = index === 0 ? 'bg-brand-50/40 dark:bg-brand-950/20 font-medium' : 'hover:bg-slate-50 dark:hover:bg-slate-700/30';
+
+                let diffText = '';
+                if (difference === 0) {
+                    diffText = '<span class="text-slate-400">Baseline</span>';
+                } else {
+                    diffText = `<span class="text-emerald-600 dark:text-emerald-400 font-semibold">+${formatCurrency(difference)}</span>`;
+                }
+
+                row.innerHTML = `
+                    <td class="py-3 px-4 text-slate-800 dark:text-slate-200">
+                        ${scenario.name}
+                        ${index === 0 ? '<span class="ml-1.5 text-[10px] bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300 px-1.5 py-0.5 rounded">Active</span>' : ''}
+                    </td>
+                    <td class="py-3 px-4 font-semibold text-brand-600 dark:text-brand-400">${targetRate.toFixed(1)}%</td>
+                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300">${formatCurrency(result.interest)}</td>
+                    <td class="py-3 px-4 text-slate-900 dark:text-white font-semibold">${formatCurrency(result.totalAmount)}</td>
+                    <td class="py-3 px-4">${diffText}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        /**
+         * Helper Function: Slider Syncing
+         */
+        function syncRateFromRange(val) {
+            document.getElementById('rate').value = val;
+            calculateInterest();
+        }
+
+        /**
+         * Helper Function: Form Reset
+         */
+        function resetCalculator() {
+            document.getElementById('principal').value = 10000;
+            document.getElementById('rate').value = 6.5;
+            document.getElementById('time').value = 5;
+            calculateInterest();
+        }
+
+        /**
+         * Theme Handler: Dark/Light Mode Switcher
+         */
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-moon text-lg';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-sun text-lg';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize Theme preference and triggers on Page Load
+        window.onload = function() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-lg';
+            }
+            calculateInterest();
+        };
+    </script>
+</body>
+</html>
